@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import csv
+import io
 import json
 import sys
 import re
@@ -63,9 +64,11 @@ def run_ping(target, count, timeout):
     return summary
 
 
-def print_table(rows):
-    print("target               ok   recv  loss     min      avg      max      jitter")
-    print("-" * 78)
+def format_table(rows):
+    lines = [
+        "target               ok   recv  loss     min      avg      max      jitter",
+        "-" * 78,
+    ]
     for row in rows:
         ok = "sim" if row["ok"] else "nao"
         loss = "-" if row["packet_loss"] is None else f"{row['packet_loss']:.0f}%"
@@ -73,10 +76,15 @@ def print_table(rows):
         avg = "-" if row["avg_ms"] is None else f"{row['avg_ms']}ms"
         max_ms = "-" if row["max_ms"] is None else f"{row['max_ms']}ms"
         jitter = "-" if row["jitter_ms"] is None else f"{row['jitter_ms']}ms"
-        print(f"{row['target']:<20} {ok:<4} {row.get('received', 0):<5} {loss:<8} {min_ms:<8} {avg:<8} {max_ms:<8} {jitter}")
+        lines.append(
+            f"{row['target']:<20} {ok:<4} {row.get('received', 0):<5} "
+            f"{loss:<8} {min_ms:<8} {avg:<8} {max_ms:<8} {jitter}"
+        )
+
+    return "\n".join(lines)
 
 
-def print_csv(rows):
+def format_csv(rows):
     fields = [
         "target",
         "ok",
@@ -89,9 +97,21 @@ def print_csv(rows):
         "jitter_ms",
         "started_at",
     ]
-    writer = csv.DictWriter(sys.stdout, fieldnames=fields, extrasaction="ignore")
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=fields, extrasaction="ignore")
     writer.writeheader()
     writer.writerows(rows)
+    return output.getvalue().strip()
+
+
+def render_output(rows, output_format):
+    if output_format == "json":
+        return json.dumps(rows, indent=2, ensure_ascii=False)
+
+    if output_format == "csv":
+        return format_csv(rows)
+
+    return format_table(rows)
 
 
 def main():
@@ -101,18 +121,20 @@ def main():
     parser.add_argument("--timeout", type=positive_int, default=2, help="timeout por pacote")
     parser.add_argument("--format", choices=["table", "json", "csv"], default="table", help="formato da saida")
     parser.add_argument("--json", action="store_true", help="atalho para --format json")
+    parser.add_argument("--output", help="salvar a mesma saida em um arquivo")
     args = parser.parse_args()
 
     targets = args.target or DEFAULT_TARGETS
     rows = [run_ping(target, args.count, args.timeout) for target in targets]
     output_format = "json" if args.json else args.format
+    rendered = render_output(rows, output_format)
 
-    if output_format == "json":
-        print(json.dumps(rows, indent=2, ensure_ascii=False))
-    elif output_format == "csv":
-        print_csv(rows)
-    else:
-        print_table(rows)
+    print(rendered)
+
+    if args.output:
+        with open(args.output, "w", encoding="utf-8", newline="") as file:
+            file.write(rendered)
+            file.write("\n")
 
     if any(not row["ok"] for row in rows):
         raise SystemExit(1)
