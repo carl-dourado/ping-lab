@@ -82,3 +82,15 @@ python ping_lab.py --format csv
 - depende do comando `ping` do sistema
 - o viewer usa React via CDN
 - nao guarda historico ainda
+
+## coisas para melhorar depois
+
+- adicionar testes para parsing da saida do `ping`
+- tratar melhor diferencas entre Linux, macOS e Windows
+- separar exemplos de JSON em uma pasta propria
+- guardar historico simples para comparar resultados de dias diferentes
+- melhorar mensagens quando o comando `ping` nao existe
+
+## anotacoes de aprendizado
+
+O ponto principal aqui foi treinar a ligacao entre CLI e uma tela simples: o Python coleta os dados e o viewer so apresenta o JSON. Ainda tem partes frageis, principalmente o regex em cima da saida do `ping`, mas isso deixa claro o que precisa ser melhorado depois.
