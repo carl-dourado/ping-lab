@@ -1,19 +1,22 @@
 # ping-lab
 
-Um lab pequeno para testar `ping`, ver latencia/perda e transformar a saida do terminal em algo mais facil de olhar.
+Esse repo nasceu porque eu queria parar de olhar para "a internet ta ruim" sem ter numero nenhum.
 
-Nao e uma ferramenta profissional de monitoramento. Fiz mais para estudar rede basica, Python e um pouco de front-end sem complicar demais.
+A ideia e simples: rodar `ping` em um ou mais alvos, pegar a saida do terminal e transformar isso em tabela, JSON, CSV ou numa telinha web.
 
-## o que tem
+Nao coloquei isso aqui como produto pronto. E um lab pequeno para treinar rede basica, Python e um pouco de front-end em cima de dado real.
 
-- CLI em Python
+## o que tem aqui
+
+- `ping_lab.py`: CLI em Python
 - teste de um ou varios alvos
-- latencia minima, media, maxima e jitter
 - perda de pacote
+- latencia minima, media e maxima
+- jitter simples
 - saida em tabela, JSON ou CSV
-- viewer simples em React para abrir o JSON
+- viewer web em React para abrir o JSON gerado
 
-## uso rapido
+## rodando no terminal
 
 ```bash
 python ping_lab.py
@@ -31,6 +34,12 @@ Gerando JSON:
 python ping_lab.py --format json --output resultado.json
 ```
 
+Gerando CSV:
+
+```bash
+python ping_lab.py --format csv --output resultado.csv
+```
+
 ## viewer web
 
 A parte web fica em:
@@ -39,58 +48,40 @@ A parte web fica em:
 web/index.html
 ```
 
-Ela nao executa ping pelo navegador. O fluxo e:
+O navegador nao executa `ping` direto. O fluxo que eu fiz foi:
 
 ```text
-Python faz o ping -> gera JSON -> React mostra os dados
+Python coleta -> salva JSON -> React mostra os dados
 ```
 
-Fiz assim porque o navegador nao faz ICMP direto, e tambem porque separa bem as coisas: Python coleta, React visualiza.
+Fiz assim porque browser nao faz ICMP, e tambem porque separa bem as coisas: Python fica com a coleta e a tela fica so com a visualizacao.
 
-## formatos
-
-Tabela:
-
-```bash
-python ping_lab.py --format table
-```
-
-JSON:
-
-```bash
-python ping_lab.py --format json
-```
-
-CSV:
-
-```bash
-python ping_lab.py --format csv
-```
-
-## o que eu treinei aqui
+## o que eu treinei
 
 - `argparse`
 - `subprocess.run`
+- parse da saida do `ping`
 - regex para pegar `time=... ms`
-- media e jitter com `statistics`
-- JSON/CSV
-- React lendo um arquivo gerado pelo Python
+- calculo simples com `statistics`
+- JSON e CSV
+- React lendo arquivo gerado por script
 
 ## limites
 
-- pensado primeiro para Linux
 - depende do comando `ping` do sistema
+- pensei primeiro em Linux, entao outro sistema pode exigir ajuste no parse
 - o viewer usa React via CDN
-- nao guarda historico ainda
+- o regex em cima da saida do `ping` ainda e a parte mais fragil
 
-## coisas para melhorar depois
+## o que falta
 
-- adicionar testes para parsing da saida do `ping`
-- tratar melhor diferencas entre Linux, macOS e Windows
-- separar exemplos de JSON em uma pasta propria
-- guardar historico simples para comparar resultados de dias diferentes
-- melhorar mensagens quando o comando `ping` nao existe
+- guardar historico de execucoes
+- gerar graficos melhores
+- configurar os alvos pela tela
+- mostrar comparacao entre rodadas ou dias diferentes
+- adicionar testes para o parse da saida do `ping`
+- melhorar a mensagem quando o comando `ping` nao existe
 
-## anotacoes de aprendizado
+## nota
 
-O ponto principal aqui foi treinar a ligacao entre CLI e uma tela simples: o Python coleta os dados e o viewer so apresenta o JSON. Ainda tem partes frageis, principalmente o regex em cima da saida do `ping`, mas isso deixa claro o que precisa ser melhorado depois.
+O ponto principal aqui foi treinar a ligacao entre CLI e uma tela simples: o Python coleta os dados e o viewer so apresenta o JSON.
